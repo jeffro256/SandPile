@@ -8,7 +8,7 @@ public class SandPiles {
     public static void main(String[] args) {
         System.setProperty("java.awt.headless", "true");
 
-        final String defaultSerialFileName = "Output/last_pile.ser";
+        final String defaultSerialFileName = "Serial/last_pile.ser";
         SinglePileSandGrid grid = null;
         String pngFileName = null;
         String serialOutFileName = null;
@@ -82,7 +82,7 @@ public class SandPiles {
         }
 
         if (serialOutFileName == null) {
-            serialOutFileName = "Output/sandpile_" + (grid.amountSand() + sand) + ".ser";
+            serialOutFileName = "Serial/onepile_" + (grid.amountSand() + sand) + ".ser";
         }
 
         createAutosaveThread(grid, serialOutFileName, defaultSerialFileName).start();
@@ -109,7 +109,7 @@ public class SandPiles {
 
         try {
             if (pngFileName == null) {
-                pngFileName = "Output/onepile_" + result.amountSand() + ".png";
+                pngFileName = "Images/onepile_" + result.amountSand() + ".png";
             }
 
             BufferedImage image = new SandPileGridDrawer(result).getImage();

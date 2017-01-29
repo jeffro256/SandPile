@@ -1,5 +1,4 @@
-Output/
-*.ser
 *.png
+*.ser
 *.class
-
+*/.DS_Store
