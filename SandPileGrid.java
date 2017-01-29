@@ -158,6 +158,18 @@ public class SandPileGrid implements Cloneable {
         
         return true;
     }
+
+    public int amountSand() {
+        int sand = 0;
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                sand += grid[i][j];
+            }
+        }
+
+        return sand;
+    }
     
     public void clear() {
         for (int i = 0; i < width; i++) {
@@ -342,48 +354,29 @@ public class SandPileGrid implements Cloneable {
 
 class SinglePileSandGrid implements Serializable {
     protected int[][] gridQuad;
-    private transient Lock lock;
+    private transient ReentrantLock lock;
+    private volatile transient boolean toppling;
+
+    private static final long serialVersionUID = 8309200284561310866L;
+    private static final boolean fairLock = true;
 
     public SinglePileSandGrid(int size) {
         gridQuad = new int[size][size];
-        lock = new ReentrantLock();
+        lock = new ReentrantLock(fairLock);
+        toppling = false;
     }
 
     public void place(int sand) {
         gridQuad[0][0] += sand;
     }
 
-    public void topple(String saveFileName) {
+    public long topple(String saveFileName) {
         int width = gridQuad.length, height = gridQuad[0].length;
         int calc_width = 1, calc_height = 1; 
         boolean isStable;
-        
-        Thread cacheThread = null;
-        if (saveFileName != null) {
-            final Object obj = this;
-            cacheThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (!Thread.interrupted()) {
-                        try {
-                            saveToFile(saveFileName);
-                            Thread.sleep(200000);
-                        }
-                        catch (InterruptedException ie) { 
-                            break;
-                        }
-                        catch (Exception e) {
-                            e.printStackTrace();
-                        }
 
-                        System.out.println("Im just going along...");
-                    }
-                }
-            });
-            cacheThread.setDaemon(true);
-            cacheThread.start();
-        }
-
+        int loops = 0;
+        toppling = true;
         do {
             int new_calc_width = 0, new_calc_height = 0;
             isStable = true;
@@ -436,25 +429,17 @@ class SinglePileSandGrid implements Serializable {
                 width *= 2;
                 height *= 2;
             }
-        } while (!isStable);
 
-        if (saveFileName != null) {
-            cacheThread.interrupt();
-            try {
-                cacheThread.join();
-                saveToFile(saveFileName);
-            }
-            catch (InterruptedException ie) {}
-            catch (IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
+            loops++;
+        } while (!isStable && toppling);
+
+        toppling = false;
+
+        return loops;
     }
 
-    public void topple() {
-        topple("sandpile_save.ser");
-        // alternatively:
-        //topple(null);
+    public void stopTopple() {
+        toppling = false;
     }
 
     public int amountSand() {
@@ -547,14 +532,6 @@ class SinglePileSandGrid implements Serializable {
         return new SandPileGrid(fullGrid);
     }
 
-    public void saveToFile(String fname) throws IOException {
-        FileOutputStream fstream = new FileOutputStream(fname);
-        ObjectOutputStream outStream = new ObjectOutputStream(fstream);
-        outStream.writeObject(this);
-        outStream.close();
-        fstream.close();
-    }
-
     private void writeObject(ObjectOutputStream out) throws IOException {
         lock.lock();
         try {
@@ -567,6 +544,6 @@ class SinglePileSandGrid implements Serializable {
     private void readObject(ObjectInputStream in) throws IOException,
             ClassNotFoundException {
         gridQuad = (int[][]) in.readObject();
-        lock = new ReentrantLock();
+        lock = new ReentrantLock(fairLock);
     }
 }

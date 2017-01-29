@@ -3,7 +3,6 @@ import java.awt.image.*;
 
 public class SandPileGridDrawer {
     public SandPileGrid spg;
-    //public Color[] sandColors = { Color.BLACK, new Color(0, 128, 255), new Color(255, 223, 0), new Color(180, 35, 35) };
     public Color[] sandColors = { new Color(18, 72, 249), new Color(115, 170, 249), new Color(255, 192, 0), new Color(124, 0, 0) };
     public Color bigSandColor = Color.WHITE;
 

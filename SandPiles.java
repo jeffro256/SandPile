@@ -1,45 +1,35 @@
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.Random;
+import java.util.*;
 
 import javax.imageio.ImageIO;
 
-
 public class SandPiles {
     public static void main(String[] args) {
-        final String defaultSerialFileName = "Output/sandpile_save.ser";
-        SinglePileSandGrid grid = null;
-        String pngFileName = "Output/default_output_" + Math.abs(new Random().nextInt()) + ".png";
-        String serialOutFileName = defaultSerialFileName;
-        int sand = 0;
+        System.setProperty("java.awt.headless", "true");
 
-        for (String argument: args) {
-            if (argument.startsWith("^")) {
-                sand = 1 << Integer.parseInt(argument.substring(1));
-            }
-            else if (argument.endsWith(".png")) {
-                pngFileName = argument;
-            }
-            else if (argument.endsWith(".ser")) {
-                serialOutFileName = argument;
-            }
-            else if (argument.toLowerCase().equals("continue")) {
-                try {
-                    System.out.println("loading from " + defaultSerialFileName + "...");
+        final String defaultSerialFileName = "Output/last_pile.ser";
+        SinglePileSandGrid grid = null;
+        String pngFileName = null;
+        String serialOutFileName = null;
+        int sand = 0;
+        boolean shouldCheck = false;
+
+        try {
+            ListIterator<String> argIterator = Arrays.asList(args).listIterator();
+            while (argIterator.hasNext()) {
+                String arg = argIterator.next();
+
+                if (compareFlag(arg, "continue")) {
+                    System.out.println("Loading from " + defaultSerialFileName + "...");
                     FileInputStream fstream = new FileInputStream(defaultSerialFileName);
                     ObjectInputStream objStream = new ObjectInputStream(fstream);
                     grid = (SinglePileSandGrid) objStream.readObject();
                     objStream.close();
                     fstream.close();
                 }
-                catch (Exception e) {
-                    e.printStackTrace();
-                    return;
-                }
-            }
-            else if (argument.toLowerCase().startsWith("continue=")) {
-                try {
-                    String objInFile = argument.substring(9);
+                else if (compareFlag(arg, "input")) {
+                    String objInFile = argIterator.next();
                     System.out.println("loading from " + objInFile + "...");
                     FileInputStream fstream = new FileInputStream(objInFile);
                     ObjectInputStream objStream = new  ObjectInputStream(fstream);
@@ -47,14 +37,40 @@ public class SandPiles {
                     objStream.close();
                     fstream.close();
                 }
-                catch (Exception e) {
-                    e.printStackTrace();
+                else if (compareFlag(arg, "help")) {
+                    String helpString = "A program to manipulate Abelian SandPiles\n" +
+                                        "Options:\n" +
+                                        "    -continue or -c: Continue from last sandpile save\n" +
+                                        "    -input or -i <file>: Continue from specified save file\n" +
+                                        "    -help or -h: Help\n" +
+                                        "    -output or -o <file>: When finished, use specified file as image output\n" +
+                                        "    -power or -p <number>: Add 2^<number> amount of sand to sand pile\n" +
+                                        "    -serialout or -s <file>: Autosave to specified file\n" +
+                                        "    -test or -t: Test sand pile against simpler, but slower implementation\n" +
+                                        "All other arguments will be interpreted as base 10 number amount of sand to add to pile";
+                    System.out.println(helpString);
                     return;
                 }
+                else if (compareFlag(arg, "output")) {
+                    pngFileName = argIterator.next();
+                }
+                else if (compareFlag(arg, "power")) {
+                    sand += 1 << Integer.parseInt(argIterator.next());
+                }
+                else if (compareFlag(arg, "serialout")) {
+                    serialOutFileName = argIterator.next();
+                }
+                else if (compareFlag(arg, "test")) {
+                    shouldCheck = true;
+                }
+                else {
+                    sand += Integer.parseInt(arg);
+                }
             }
-            else {
-                sand = Integer.parseInt(argument);
-            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return;
         }
         
         if (grid == null) {
@@ -65,33 +81,123 @@ public class SandPiles {
             grid = new SinglePileSandGrid((int) Math.sqrt(sand) / 2);
         }
 
+        if (serialOutFileName == null) {
+            serialOutFileName = "Output/sandpile_" + (grid.amountSand() + sand) + ".ser";
+        }
+
+        createAutosaveThread(grid, serialOutFileName, defaultSerialFileName).start();
+        Runtime.getRuntime().addShutdownHook(createShutdownHook(grid, serialOutFileName, defaultSerialFileName));
+
         System.out.println("Adding sand: " + sand);
         System.out.println("From starting sand: " + grid.amountSand());
-        System.out.println("total sand: " + sand + grid.amountSand());
-        System.out.println("Serial out: " + serialOutFileName);
-        System.out.println("Image output: " + pngFileName);
+        System.out.println("Expected sand: " + (sand + grid.amountSand()));
+        System.out.println("Will Serialize to: " + serialOutFileName);
 
         grid.place(sand);
 
         System.out.println("Toppling...");
         long oldTime = System.nanoTime();
-        grid.topple(serialOutFileName);
+        long topples = grid.topple(serialOutFileName);
         long newTime = System.nanoTime();
         float elapsed1 = (float) (newTime - oldTime) / 1_000_000_000;
         System.out.println("Done toppling!");
+        System.out.println("Toppled " + topples + " times");
         System.out.println("Time: " + elapsed1);
 
         SandPileGrid result = grid.toSandPileGrid();
+        System.out.println("End sand: " + result.amountSand());
 
         try {
+            if (pngFileName == null) {
+                pngFileName = "Output/onepile_" + result.amountSand() + ".png";
+            }
+
             BufferedImage image = new SandPileGridDrawer(result).getImage();
             ImageIO.write(image, "png", new File(pngFileName));
             System.out.println("Rasterized to: " + pngFileName);
-            grid.saveToFile(serialOutFileName);
-            System.out.println("Serialized to: " + serialOutFileName);
         }
-        catch (IOException e) {
+        catch (Exception e) {
             e.printStackTrace();
         }
+
+        if (shouldCheck) {
+            System.out.println("Checking...");
+            int width = grid.getWidth(), height = grid.getHeight();
+            SandPileGrid test = new SandPileGrid(width, height);
+            test.place(width / 2, height / 2, result.amountSand());
+            System.out.println("Equality to Test?: " + test.equals(result));
+        }
+    }
+
+    private static Thread createAutosaveThread(Object obj, int saveDelay, String... paths) {
+        Thread saveThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (!Thread.interrupted()) {
+                    try {
+                        for (String path: paths) {
+                            FileOutputStream fstream = new FileOutputStream(path);
+                            ObjectOutputStream ostream = new ObjectOutputStream(fstream);
+                            ostream.writeObject(obj);
+                            ostream.close();
+                            fstream.close();
+                        }
+
+                        Thread.sleep(saveDelay);
+                    }
+                    catch (InterruptedException ie) { 
+                        break;
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        saveThread.setDaemon(true);
+
+        return saveThread;
+    }
+
+    private static Thread createAutosaveThread(Object obj, String... paths) {
+        return createAutosaveThread(obj, 3600000, paths);
+    }
+
+    private static Thread createShutdownHook(Object obj, String... paths) {
+        Thread hook = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    for (String path: paths) {
+                        System.out.println("Serializing to " + path);
+                        FileOutputStream fstream = new FileOutputStream(path);
+                        ObjectOutputStream ostream = new ObjectOutputStream(fstream);
+                        ostream.writeObject(obj);
+                        ostream.close();
+                        fstream.close();
+                    }
+                    System.out.println("Exiting...");
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        return hook;
+    }
+
+    private static boolean compareFlag(String arg, String flag, String opShort) {
+        String larg = arg.toLowerCase();
+        String lflag = flag.toLowerCase();
+        String flag1 = "-" + lflag;
+        String flag2 = "-" + flag1;
+        String flag3 = opShort == null ? ("-" + lflag.charAt(0)) : opShort.toLowerCase();
+
+        return larg.equals(flag1) || larg.equals(flag2) || larg.equals(flag3);
+    }
+
+    private static boolean compareFlag(String arg, String flag) {
+        return compareFlag(arg, flag, null);
     }
 }
