@@ -42,7 +42,7 @@ public class SinglePileSandGrid implements Serializable {
                         new_calc_height = Math.min(new_calc_height, height);
                         isStable = false;
 
-                        gridQuad[i][j] -= sand - (sand & 3);
+                        gridQuad[i][j] &= 3;
 
                         if (i > 1) {
                             gridQuad[i-1][j] += sand >>> 2;
