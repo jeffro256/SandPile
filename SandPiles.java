@@ -1,6 +1,8 @@
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 
 import javax.imageio.ImageIO;
 
@@ -95,6 +97,8 @@ public class SandPiles {
 
         grid.place(sand);
 
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        System.out.println("Started at: " + dtf.format(LocalDateTime.now()));
         System.out.println("Toppling...");
         long oldTime = System.nanoTime();
         long topples = grid.topple(serialOutFileName);
@@ -102,6 +106,7 @@ public class SandPiles {
         float elapsed1 = (float) (newTime - oldTime) / 1_000_000_000;
         System.out.println("Done toppling!");
         System.out.println("Toppled " + topples + " times");
+        System.out.println("Ended at: " + dtf.format(LocalDateTime.now()));
         System.out.println("Time: " + elapsed1);
 
         SandPileGrid result = grid.toSandPileGrid();
