@@ -2,7 +2,6 @@ public class SandPileGrid implements Cloneable {
     protected int width;
     protected int height;
     protected int[][] grid;
-    protected int[][] gridQuad;
         
     public static int TOPPLE_SAND = 4;
     
@@ -91,13 +90,11 @@ public class SandPileGrid implements Cloneable {
     }
 
     public void topple(boolean oneStep) {
-        if (gridQuad == null || (gridQuad.length != width && gridQuad[0].length != height)) {
-            gridQuad = new int[width][height];
-        }
+        int[][] newGrid = new int[width][height];
 
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                gridQuad[i][j] = grid[i][j];
+                newGrid[i][j] = grid[i][j];
             }
         }
 
@@ -107,22 +104,22 @@ public class SandPileGrid implements Cloneable {
                     int sand = grid[i][j];
                     
                     if (sand >= TOPPLE_SAND) {
-                        gridQuad[i][j] -= TOPPLE_SAND;
+                        newGrid[i][j] -= TOPPLE_SAND;
                         
                         if (i > 0) {
-                            gridQuad[i-1][j]++;
+                            newGrid[i-1][j]++;
                         }
                         
                         if (i < width - 1) {
-                            gridQuad[i+1][j]++;
+                            newGrid[i+1][j]++;
                         }
                         
                         if (j > 0) {
-                            gridQuad[i][j-1]++;
+                            newGrid[i][j-1]++;
                         }
                         
                         if (j < height - 1) {
-                            gridQuad[i][j+1]++;
+                            newGrid[i][j+1]++;
                         }
                     }
                 }
@@ -130,7 +127,7 @@ public class SandPileGrid implements Cloneable {
             
             for (int i = 0; i < width; i++) {
                 for (int j = 0; j < height; j++) {
-                    grid[i][j] = gridQuad[i][j];
+                    grid[i][j] = newGrid[i][j];
                 }
             }
             
