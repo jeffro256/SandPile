@@ -34,7 +34,7 @@ public class SandPiles {
                     String objInFile = argIterator.next();
                     System.out.println("loading from " + objInFile + "...");
                     FileInputStream fstream = new FileInputStream(objInFile);
-                    ObjectInputStream objStream = new  ObjectInputStream(fstream);
+                    ObjectInputStream objStream = new ObjectInputStream(fstream);
                     grid = (SinglePileSandGrid) objStream.readObject();
                     objStream.close();
                     fstream.close();
