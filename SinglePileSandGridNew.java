@@ -1,22 +1,22 @@
 import java.io.*;
 import java.util.concurrent.locks.*;
 
-public class SinglePileSandGrid implements Serializable {
+public class SinglePileSandGridNew implements Serializable {
     protected int[][] gridQuad;
     private transient ReentrantLock lock;
     private volatile transient boolean toppling;
 
-    private static final long serialVersionUID = 8309200284561310866L;
+    private static final long serialVersionUID = 8379211264561215666L;
     private static final boolean fairLock = true;
 
-    public SinglePileSandGrid(int size) {
+    public SinglePileSandGridNew(int size) {
         gridQuad = new int[size][size];
         lock = new ReentrantLock(fairLock);
         toppling = false;
     }
 
     public void place(int sand) {
-        gridQuad[0][0] += sand;
+        gridQuad[1][1] += sand;
     }
 
     public long topple() {
@@ -31,40 +31,33 @@ public class SinglePileSandGrid implements Serializable {
             isStable = true;
             
             lock.lock();
-            for (int i = 0; i < calc_width; i++) {
-                for (int j = 0; j < calc_height; j++) {
-                    int sand = gridQuad[i][j];
+            for (int i = 1; i < calc_width; i++) {
+                for (int j = 1; j < calc_height; j++) {
+                    final int sand = gridQuad[i][j];
+                    final int splitSand = sand >>> 2;
 
                     if (sand >= 4) {
                         new_calc_width = Math.max(i+2, new_calc_width);
                         new_calc_height = Math.max(j+2, new_calc_height);
-                        new_calc_width = Math.min(new_calc_width, width);
-                        new_calc_height = Math.min(new_calc_height, height);
+                        new_calc_width = Math.min(new_calc_width, width - 2);
+                        new_calc_height = Math.min(new_calc_height, height - 2);
                         isStable = false;
 
                         gridQuad[i][j] &= 3;
 
-                        if (i > 1) {
-                            gridQuad[i-1][j] += sand >>> 2;
+                        if (i == 1) {
+                            gridQuad[0][j] += splitSand;
                         }
-                        else if (i == 1) {
-                            gridQuad[0][j] += sand >>> 2 << 1;
+                        
+                        gridQuad[i-1][j] += splitSand;
+                        gridQuad[i+1][j] += splitSand;
+
+                        if (j == 1) {
+                            gridQuad[i][0] += splitSand;
                         }
 
-                        if (i < width - 1) {
-                            gridQuad[i+1][j] += sand >>> 2;
-                        }
-
-                        if (j > 1) {
-                            gridQuad[i][j-1] += sand >>> 2;
-                        }
-                        else if (j == 1) {
-                            gridQuad[i][0] += sand >>> 2 << 1;
-                        }
-
-                        if (j < height - 1) {
-                            gridQuad[i][j+1] += sand >>> 2;
-                        }
+                        gridQuad[i][j-1] += splitSand;
+                        gridQuad[i][j+1] += splitSand;
                     }
                 }
             }
@@ -95,8 +88,8 @@ public class SinglePileSandGrid implements Serializable {
         int sand = 0;
 
         lock.lock();
-        for (int i = 0; i < gridQuad.length; i++) {
-            for (int j = 0; j < gridQuad[0].length; j++) {
+        for (int i = 1; i < gridQuad.length; i++) {
+            for (int j = 1; j < gridQuad[0].length; j++) {
                 sand += gridQuad[i][j];
             }
         }
@@ -105,6 +98,7 @@ public class SinglePileSandGrid implements Serializable {
         return sand;
     }
 
+    // @TODO: Work with edges?
     public void trim() {
         lock.lock();
         int width = gridQuad.length, height = gridQuad[0].length;
@@ -132,11 +126,11 @@ public class SinglePileSandGrid implements Serializable {
     }
 
     public int getWidth() {
-        return gridQuad.length * 2 - 1;
+        return (gridQuad.length - 3) * 2 + 1;
     }
 
     public int getHeight() {
-        return gridQuad[0].length * 2 - 1;
+        return (gridQuad[0].length - 3) * 2 + 1;
     }
 
     public void resize(int w, int h) {
@@ -165,13 +159,13 @@ public class SinglePileSandGrid implements Serializable {
     public SandPileGrid toSandPileGrid() {
         lock.lock();
         int width = gridQuad.length, height = gridQuad[0].length;
-        int fullWidth = width * 2 - 1, fullHeight = height * 2 - 1;
+        int fullWidth = (width - 3) * 2 + 1, fullHeight = (height - 3) * 2 + 1;
         int[][] fullGrid = new int[fullWidth][fullHeight];
 
         for (int i = 0; i < fullWidth; i++) {
             for (int j = 0; j < fullHeight; j++) {
-                int x = Math.abs(i - (width - 1));
-                int y = Math.abs(j - (height - 1));
+                int x = Math.abs(i - width);
+                int y = Math.abs(j - height);
 
                 fullGrid[i][j] = gridQuad[x][y];
             }

@@ -101,7 +101,7 @@ public class SandPiles {
         System.out.println("Started at: " + dtf.format(LocalDateTime.now()));
         System.out.println("Toppling...");
         long oldTime = System.nanoTime();
-        long topples = grid.topple(serialOutFileName);
+        long topples = grid.topple();
         long newTime = System.nanoTime();
         float elapsed1 = (float) (newTime - oldTime) / 1_000_000_000;
         System.out.println("Done toppling!");
