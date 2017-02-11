@@ -37,8 +37,8 @@ public class SinglePileSandGridNew implements Serializable {
                     final int splitSand = sand >>> 2;
 
                     if (sand >= 4) {
-                        new_calc_width = Math.max(i+2, new_calc_width);
-                        new_calc_height = Math.max(j+2, new_calc_height);
+                        new_calc_width = Math.max(i+1, new_calc_width);
+                        new_calc_height = Math.max(j+1, new_calc_height);
                         new_calc_width = Math.min(new_calc_width, width - 2);
                         new_calc_height = Math.min(new_calc_height, height - 2);
                         isStable = false;
