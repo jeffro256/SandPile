@@ -33,7 +33,7 @@ public class SandPiles {
                 }
                 else if (compareFlag(arg, "input")) {
                     String objInFile = argIterator.next();
-                    System.out.println("loading from " + objInFile + "...");
+                    System.out.println("Loading from " + objInFile + "...");
                     FileInputStream fstream = new FileInputStream(objInFile);
                     ObjectInputStream objStream = new ObjectInputStream(fstream);
                     grid = (SinglePileSandGrid) objStream.readObject();

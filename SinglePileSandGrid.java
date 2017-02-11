@@ -21,7 +21,7 @@ public class SinglePileSandGrid implements Serializable {
 
     public long topple() {
         int width = gridQuad.length, height = gridQuad[0].length;
-        int calc_width = 1, calc_height = 1; 
+        int calc_width = width, calc_height = height;
         boolean isStable;
 
         int loops = 0;
@@ -111,8 +111,8 @@ public class SinglePileSandGrid implements Serializable {
             for (int j = 0; j < gridQuad[0].length; j++) {
                 int s = gridQuad[i][j];
                 
-                if (i >= 0) s *= 2;
-                if (j >= 0) s *= 2;
+                if (i > 0) s *= 2;
+                if (j > 0) s *= 2;
 
                 sand += s;
             }
