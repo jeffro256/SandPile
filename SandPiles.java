@@ -15,6 +15,7 @@ public class SandPiles {
         String pngFileName = null;
         String serialOutFileName = null;
         int sand = 0;
+        int scalar = 1;
         boolean shouldCheck = false;
 
         try {
@@ -45,6 +46,7 @@ public class SandPiles {
                                         "    -continue or -c: Continue from last sandpile save\n" +
                                         "    -input or -i <file>: Continue from specified save file\n" +
                                         "    -help or -h: Help\n" +
+                                        "    -multiply or -m <number>: Multiply by number\n" + 
                                         "    -output or -o <file>: When finished, use specified file as image output\n" +
                                         "    -power or -p <number>: Add 2^<number> amount of sand to sand pile\n" +
                                         "    -serialout or -s <file>: Autosave to specified file\n" +
@@ -52,6 +54,9 @@ public class SandPiles {
                                         "All other arguments will be interpreted as base 10 number amount of sand to add to pile";
                     System.out.println(helpString);
                     return;
+                }
+                else if (compareFlag(arg, "multiply")) {
+                    scalar *= Integer.parseInt(argIterator.next());
                 }
                 else if (compareFlag(arg, "output")) {
                     pngFileName = argIterator.next();
@@ -75,27 +80,40 @@ public class SandPiles {
             return;
         }
         
+        int expectedSand = (grid == null) ? (sand * scalar) : ((sand + grid.amountSand()) * scalar);
+        int approxSize = (int) Math.sqrt(expectedSand) / 2;
+
         if (grid == null) {
             if (sand == 0) {
                 System.out.println("sand cannot be 0 for new sandpile!");
                 return;
             }
-            grid = new SinglePileSandGrid((int) Math.sqrt(sand) / 2);
+            grid = new SinglePileSandGrid(approxSize);
+        }
+        else {
+            SinglePileSandGrid biggerGrid = new SinglePileSandGrid(approxSize);
+            biggerGrid.copyFrom(grid);
+            grid = biggerGrid;
         }
 
         if (serialOutFileName == null) {
-            serialOutFileName = "Serial/onepile_" + (grid.amountSand() + sand) + ".ser";
+            serialOutFileName = "Serial/onepile_" + expectedSand + ".ser";
         }
+
+        BufferedImage pileCanvas = new BufferedImage(grid.getWidth(), grid.getHeight(), BufferedImage.TYPE_INT_RGB);
+        int[][] resultGrid = new int[grid.getWidth()][grid.getHeight()];
 
         createAutosaveThread(grid, serialOutFileName, defaultSerialFileName).start();
         Runtime.getRuntime().addShutdownHook(createShutdownHook(grid, serialOutFileName, defaultSerialFileName));
 
         System.out.println("Adding sand: " + sand);
         System.out.println("From starting sand: " + grid.amountSand());
-        System.out.println("Expected sand: " + (sand + grid.amountSand()));
+        System.out.println("Then scaling by: " + scalar);
+        System.out.println("Expected sand: " + expectedSand);
         System.out.println("Will Serialize to: " + serialOutFileName);
 
         grid.place(sand);
+        grid.multiply(scalar);
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
         System.out.println("Started at: " + dtf.format(LocalDateTime.now()));
@@ -109,7 +127,8 @@ public class SandPiles {
         System.out.println("Ended at: " + dtf.format(LocalDateTime.now()));
         System.out.println("Time: " + elapsed1);
 
-        SandPileGrid result = grid.toSandPileGrid();
+        grid.unfoldOnto(resultGrid);
+        SandPileGrid result = new SandPileGrid(resultGrid);
         System.out.println("End sand: " + result.amountSand());
 
         try {
@@ -117,8 +136,8 @@ public class SandPiles {
                 pngFileName = "Images/onepile_" + result.amountSand() + ".png";
             }
 
-            BufferedImage image = new SandPileGridDrawer(result).getImage();
-            ImageIO.write(image, "png", new File(pngFileName));
+            new SandPileGridDrawer(result).renderTo(pileCanvas);
+            ImageIO.write(pileCanvas, "png", new File(pngFileName));
             System.out.println("Rasterized to: " + pngFileName);
         }
         catch (Exception e) {
@@ -188,6 +207,7 @@ public class SandPiles {
                 }
             }
         });
+        hook.setDaemon(true);
 
         return hook;
     }

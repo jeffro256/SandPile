@@ -14,14 +14,14 @@ public class SandPileGridDrawer {
         this.spg = spg;
     }
 
-    // @TODO: Add in draw code for cursor+lines
     public void renderTo(BufferedImage canvas) {
-        for (int i = 0; i < canvas.getWidth(); i++) {
-            for (int j = 0; j < canvas.getHeight(); j++) {
-                int gridX = (int) ((double) i / canvas.getWidth() * spg.getWidth());
-                int gridY = (int) ((double) j / canvas.getHeight() * spg.getHeight());
+        if (canvas.getWidth() < spg.getWidth() || canvas.getHeight() < spg.getHeight()) {
+            throw new IllegalArgumentException("canvas passed is too small");
+        }
 
-                int sand = spg.getSand(gridX, gridY);
+        for (int i = 0; i < spg.getWidth(); i++) {
+            for (int j = 0; j < spg.getHeight(); j++) {
+                int sand = spg.getSand(i, j);
 
                 Color pixelColor;
                 if (sand >= SandPileGrid.TOPPLE_SAND) {

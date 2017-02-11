@@ -91,13 +91,30 @@ public class SinglePileSandGrid implements Serializable {
         toppling = false;
     }
 
+    public void multiply(int scalar) {
+        if (scalar <= 1) return;
+
+        lock.lock();
+        for (int i = 0; i < gridQuad.length; i++) {
+            for (int j = 0; j < gridQuad[0].length; j++) {
+                gridQuad[i][j] *= scalar;
+            }
+        }
+        lock.unlock();
+    }
+
     public int amountSand() {
         int sand = 0;
 
         lock.lock();
         for (int i = 0; i < gridQuad.length; i++) {
             for (int j = 0; j < gridQuad[0].length; j++) {
-                sand += gridQuad[i][j];
+                int s = gridQuad[i][j];
+                
+                if (i >= 0) s *= 2;
+                if (j >= 0) s *= 2;
+
+                sand += s;
             }
         }
         lock.unlock();
@@ -140,6 +157,8 @@ public class SinglePileSandGrid implements Serializable {
     }
 
     public void resize(int w, int h) {
+        throw new UnsupportedOperationException("Im not ready to be used yet!!!!!!!!!");
+        /*
         lock.lock();
 
         int[][] newGrid = new int[w][h];
@@ -156,18 +175,34 @@ public class SinglePileSandGrid implements Serializable {
         gridQuad = newGrid;
 
         lock.unlock();
+        */
     }
 
     public int[][] getGrid() {
         return gridQuad;
     }
 
-    public SandPileGrid toSandPileGrid() {
-        lock.lock();
+    // NOT THREAD SAFE!!!!!!
+    public void copyFrom(SinglePileSandGrid other) {
+        // very unsafe (with sizes), work on
+
+        int[][] otherGrid = other.getGrid();
+        for (int i = 0; i < otherGrid.length; i++) {
+            for (int j = 0; j < otherGrid[0].length; j++) {
+                gridQuad[i][j] = otherGrid[i][j];
+            }
+        }
+    }
+
+    public void unfoldOnto(int[][] fullGrid) {
         int width = gridQuad.length, height = gridQuad[0].length;
         int fullWidth = width * 2 - 1, fullHeight = height * 2 - 1;
-        int[][] fullGrid = new int[fullWidth][fullHeight];
 
+        if (fullGrid.length < fullWidth || fullGrid[0].length < fullHeight) {
+            throw new IllegalArgumentException("grid passed is too small");
+        }
+
+        lock.lock();
         for (int i = 0; i < fullWidth; i++) {
             for (int j = 0; j < fullHeight; j++) {
                 int x = Math.abs(i - (width - 1));
@@ -177,8 +212,6 @@ public class SinglePileSandGrid implements Serializable {
             }
         }
         lock.unlock();
-
-        return new SandPileGrid(fullGrid);
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
