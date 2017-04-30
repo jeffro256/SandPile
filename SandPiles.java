@@ -128,7 +128,7 @@ public class SandPiles {
         System.out.println("Time: " + elapsed1);
 
         grid.unfoldOnto(resultGrid);
-        SandPileGrid result = new SandPileGrid(resultGrid);
+        SimpleSandPileGrid result = new SimpleSandPileGrid(resultGrid);
         System.out.println("End sand: " + result.amountSand());
 
         try {
@@ -147,8 +147,8 @@ public class SandPiles {
         if (shouldCheck) {
             System.out.println("Checking...");
             int width = grid.getWidth(), height = grid.getHeight();
-            SandPileGrid test = new SandPileGrid(width, height);
-            test.place(width / 2, height / 2, result.amountSand());
+            SimpleSandPileGrid test = new SimpleSandPileGrid(width, height);
+            test.place(width / 2, height / 2, (int) result.amountSand());
             System.out.println("Equality to Test?: " + test.equals(result));
         }
     }

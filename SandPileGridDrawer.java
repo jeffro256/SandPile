@@ -24,7 +24,7 @@ public class SandPileGridDrawer {
                 int sand = spg.getSand(i, j);
 
                 Color pixelColor;
-                if (sand >= SandPileGrid.TOPPLE_SAND) {
+                if (sand >= SimpleSandPileGrid.TOPPLE_SAND) {
                     pixelColor = bigSandColor;
                 }
                 else {
@@ -45,7 +45,7 @@ public class SandPileGridDrawer {
                 int sand = spg.getSand(i, j);
 
                 Color pixelColor;
-                if (sand >= SandPileGrid.TOPPLE_SAND) {
+                if (sand >= SimpleSandPileGrid.TOPPLE_SAND) {
                     pixelColor = bigSandColor;
                 }
                 else {
