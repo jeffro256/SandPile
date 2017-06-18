@@ -1,5 +1,6 @@
 import java.io.Serializable;
 
+// equals, clone
 public interface SandPileGrid {
     public void add(SandPileGrid other);
     public SandPileGrid plus(SandPileGrid other);

@@ -207,7 +207,7 @@ public class SandPiles {
                 }
             }
         });
-        hook.setDaemon(true);
+        hook.setDaemon(false);
 
         return hook;
     }

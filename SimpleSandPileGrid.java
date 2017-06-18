@@ -274,7 +274,7 @@ public class SimpleSandPileGrid implements SandPileGrid {
     
     @Override
     public String toString() {
-        int capacity = width * 2 * height + 100; // 100 is fudge
+        int capacity = width * (2 * height + 1) + 100; // 100 is fudge
         StringBuilder builder = new StringBuilder(capacity);
         
         char[] markers = {'.', '!', '=', '#'};  // topple sand length

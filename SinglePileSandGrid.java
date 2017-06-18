@@ -5,6 +5,7 @@ public class SinglePileSandGrid implements Serializable {
     protected int[][] gridQuad;
     private transient ReentrantLock lock;
     private volatile transient boolean toppling;
+    private transient int calc_width, calc_height;
 
     private static final long serialVersionUID = 8309200284561310866L;
     private static final boolean fairLock = true;
@@ -13,16 +14,26 @@ public class SinglePileSandGrid implements Serializable {
         gridQuad = new int[size][size];
         lock = new ReentrantLock(fairLock);
         toppling = false;
+        calc_width = calc_height = -1;
     }
 
     public void place(int sand) {
         gridQuad[0][0] += sand;
+
+        if (gridQuad[0][0] >= 4 && calc_width == 0 && calc_height == 0) {
+            calc_width = 1;
+            calc_height = 1;
+        }
     }
 
     public long topple() {
         int width = gridQuad.length, height = gridQuad[0].length;
-        int calc_width = width, calc_height = height;
         boolean isStable;
+
+        if (calc_width == -1 || calc_height == -1) {
+            calc_width = width;
+            calc_height = height;
+        }
 
         int loops = 0;
         toppling = true;
@@ -93,6 +104,8 @@ public class SinglePileSandGrid implements Serializable {
 
     public void multiply(int scalar) {
         if (scalar <= 1) return;
+
+        calc_width = calc_height = 1;
 
         lock.lock();
         for (int i = 0; i < gridQuad.length; i++) {
@@ -182,14 +195,24 @@ public class SinglePileSandGrid implements Serializable {
         return gridQuad;
     }
 
+    // @TODO this is terrible
     // NOT THREAD SAFE!!!!!!
     public void copyFrom(SinglePileSandGrid other) {
-        // very unsafe (with sizes), work on
+        // very inefficient (with sizes), work on
 
+        boolean lopped = false;
         int[][] otherGrid = other.getGrid();
         for (int i = 0; i < otherGrid.length; i++) {
             for (int j = 0; j < otherGrid[0].length; j++) {
-                gridQuad[i][j] = otherGrid[i][j];
+                try {
+                    gridQuad[i][j] = otherGrid[i][j];
+                }
+                catch (ArrayIndexOutOfBoundsException aie) {
+                    if (!lopped) {
+                        System.out.println("Grids not equal sizes!");
+                        lopped = true;
+                    }
+                }
             }
         }
     }
@@ -227,5 +250,7 @@ public class SinglePileSandGrid implements Serializable {
             ClassNotFoundException {
         gridQuad = (int[][]) in.readObject();
         lock = new ReentrantLock(fairLock);
+        calc_width = -1;
+        calc_height = -1;
     }
 }
