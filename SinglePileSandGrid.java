@@ -2,255 +2,276 @@ import java.io.*;
 import java.util.concurrent.locks.*;
 
 public class SinglePileSandGrid implements Serializable {
-    protected int[][] gridQuad;
-    private transient ReentrantLock lock;
-    private volatile transient boolean toppling;
-    private transient int calc_width, calc_height;
+	protected int[][] gridQuad;
+	private transient ReentrantLock lock;
+	private volatile transient boolean toppling;
+	//private transient int calc_width, calc_height;
 
-    private static final long serialVersionUID = 8309200284561310866L;
-    private static final boolean fairLock = true;
+	private static final long serialVersionUID = 0xEF85C8A053713EC9L;
+	private static final boolean fairLock = true;
 
-    public SinglePileSandGrid(int size) {
-        gridQuad = new int[size][size];
-        lock = new ReentrantLock(fairLock);
-        toppling = false;
-        calc_width = calc_height = -1;
-    }
+	public SinglePileSandGrid(int size) {
+		gridQuad = new int[size][size];
+		lock = new ReentrantLock(fairLock);
+		toppling = false;
+	}
 
-    public void place(int sand) {
-        gridQuad[0][0] += sand;
+	public void place(int sand) {
+		gridQuad[0][0] += sand;
+	}
 
-        if (gridQuad[0][0] >= 4 && calc_width == 0 && calc_height == 0) {
-            calc_width = 1;
-            calc_height = 1;
-        }
-    }
+	public long topple(boolean printProgess) {
+		int width = gridQuad.length, height = gridQuad[0].length;
+		boolean isStable;
 
-    public long topple() {
-        int width = gridQuad.length, height = gridQuad[0].length;
-        boolean isStable;
+		int calc_width = width;
+		int calc_height = height;
 
-        if (calc_width == -1 || calc_height == -1) {
-            calc_width = width;
-            calc_height = height;
-        }
+		if (printProgess) {
+			int critSand = amountCriticalSand();
+			System.out.print(String.valueOf(critSand) + "\r");
+		}
 
-        int loops = 0;
-        toppling = true;
-        do {
-            int new_calc_width = 0, new_calc_height = 0;
-            isStable = true;
-            
-            lock.lock();
-            for (int i = 0; i < calc_width; i++) {
-                for (int j = 0; j < calc_height; j++) {
-                    int sand = gridQuad[i][j];
+		int loops = 0;
+		toppling = true;
+		do {
+			int new_calc_width = 0, new_calc_height = 0;
+			isStable = true;
+			
+			//lock.lock();
+			for (int i = 0; i < calc_width; i++) {
+				for (int j = 0; j < calc_height; j++) {
+					int sand = gridQuad[i][j];
 
-                    if (sand >= 4) {
-                        new_calc_width = Math.max(i+2, new_calc_width);
-                        new_calc_height = Math.max(j+2, new_calc_height);
-                        new_calc_width = Math.min(new_calc_width, width);
-                        new_calc_height = Math.min(new_calc_height, height);
-                        isStable = false;
+					if (sand >= 4) {
+						new_calc_width = Math.max(i+2, new_calc_width);
+						new_calc_height = Math.max(j+2, new_calc_height);
+						new_calc_width = Math.min(new_calc_width, width);
+						new_calc_height = Math.min(new_calc_height, height);
+						isStable = false;
 
-                        gridQuad[i][j] &= 3;
+						gridQuad[i][j] &= 3;
 
-                        if (i > 1) {
-                            gridQuad[i-1][j] += sand >>> 2;
-                        }
-                        else if (i == 1) {
-                            gridQuad[0][j] += sand >>> 2 << 1;
-                        }
+						if (i > 1) {
+							gridQuad[i-1][j] += sand >>> 2;
+						}
+						else if (i == 1) {
+							gridQuad[0][j] += sand >>> 2 << 1;
+						}
 
-                        if (i < width - 1) {
-                            gridQuad[i+1][j] += sand >>> 2;
-                        }
+						if (i < width - 1) {
+							gridQuad[i+1][j] += sand >>> 2;
+						}
 
-                        if (j > 1) {
-                            gridQuad[i][j-1] += sand >>> 2;
-                        }
-                        else if (j == 1) {
-                            gridQuad[i][0] += sand >>> 2 << 1;
-                        }
+						if (j > 1) {
+							gridQuad[i][j-1] += sand >>> 2;
+						}
+						else if (j == 1) {
+							gridQuad[i][0] += sand >>> 2 << 1;
+						}
 
-                        if (j < height - 1) {
-                            gridQuad[i][j+1] += sand >>> 2;
-                        }
-                    }
-                }
-            }
-            lock.unlock();
+						if (j < height - 1) {
+							gridQuad[i][j+1] += sand >>> 2;
+						}
+					}
+				}
+			}
+			//lock.unlock();
 
-            calc_width = new_calc_width;
-            calc_height = new_calc_height;
+			if (printProgess && loops % 1000 == 0) {
+				int critSand = amountCriticalSand();
+				System.out.print(String.valueOf(critSand) + "              \r");
+			}
 
-            if (calc_width >= width || calc_height >= height) {
-                resize(width * 2, height * 2);
-                width *= 2;
-                height *= 2;
-            }
+			calc_width = new_calc_width;
+			calc_height = new_calc_height;
 
-            loops++;
-        } while (!isStable && toppling);
+			if (calc_width >= width || calc_height >= height) {
+				resize(width * 2, height * 2);
+				width *= 2;
+				height *= 2;
+			}
 
-        toppling = false;
+			loops++;
+		} while (!isStable && toppling);
 
-        return loops;
-    }
+		toppling = false;
 
-    public void stopTopple() {
-        toppling = false;
-    }
+		return loops;
+	}
 
-    public void multiply(int scalar) {
-        if (scalar <= 1) return;
+	public long topple() {
+		return this.topple(false);
+	}
 
-        calc_width = calc_height = 1;
+	public void stopTopple() {
+		toppling = false;
+	}
 
-        lock.lock();
-        for (int i = 0; i < gridQuad.length; i++) {
-            for (int j = 0; j < gridQuad[0].length; j++) {
-                gridQuad[i][j] *= scalar;
-            }
-        }
-        lock.unlock();
-    }
+	public void multiply(int scalar) {
+		if (scalar <= 1) return;
 
-    public int amountSand() {
-        int sand = 0;
+		lock.lock();
+		for (int i = 0; i < gridQuad.length; i++) {
+			for (int j = 0; j < gridQuad[0].length; j++) {
+				gridQuad[i][j] *= scalar;
+			}
+		}
+		lock.unlock();
+	}
 
-        lock.lock();
-        for (int i = 0; i < gridQuad.length; i++) {
-            for (int j = 0; j < gridQuad[0].length; j++) {
-                int s = gridQuad[i][j];
-                
-                if (i > 0) s *= 2;
-                if (j > 0) s *= 2;
+	public int amountSand() {
+		int sand = 0;
 
-                sand += s;
-            }
-        }
-        lock.unlock();
+		lock.lock();
+		for (int i = 0; i < gridQuad.length; i++) {
+			for (int j = 0; j < gridQuad[0].length; j++) {
+				int s = gridQuad[i][j];
+				
+				if (i != 0) s *= 2;
+				if (j != 0) s *= 2;
 
-        return sand;
-    }
+				sand += s;
+			}
+		}
+		lock.unlock();
 
-    public void trim() {
-        lock.lock();
-        int width = gridQuad.length, height = gridQuad[0].length;
-        int maxX = 1, maxY = 1;
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                if (gridQuad[i][j] >= 4) {
-                    maxX = Math.max(i, maxX);
-                    maxY = Math.max(j, maxY);
-                }
-            }
-        }
+		return sand;
+	}
 
-        int[][] newGrid = new int[maxX][maxY];
+	public int amountCriticalSand() {
+		int sum = 0;
 
-        for (int i = 0; i < maxX; i++) {
-            for (int j = 0; j < maxY; j++) {
-                newGrid[i][j] = gridQuad[i][j];
-            }
-        }
+		lock.lock();
+		for (int i = 0; i < gridQuad.length; i++) {
+			for (int j = 0; j < gridQuad[0].length; j++) {
+				int s = Math.max(gridQuad[i][j] - 3, 0);
 
-        gridQuad = newGrid;
+				if (i != 0) s *= 2;
+				if (j != 0) s *= 2;
 
-        lock.unlock();
-    }
+				sum += s;
+			}
+		}
+		lock.unlock();
 
-    public int getWidth() {
-        return gridQuad.length * 2 - 1;
-    }
+		return sum;
+	}
 
-    public int getHeight() {
-        return gridQuad[0].length * 2 - 1;
-    }
+	public void trim() {
+		lock.lock();
+		int width = gridQuad.length, height = gridQuad[0].length;
+		int maxX = 1, maxY = 1;
+		for (int i = 0; i < width; i++) {
+			for (int j = 0; j < height; j++) {
+				if (gridQuad[i][j] >= 4) {
+					maxX = Math.max(i, maxX);
+					maxY = Math.max(j, maxY);
+				}
+			}
+		}
 
-    public void resize(int w, int h) {
-        throw new UnsupportedOperationException("Im not ready to be used yet!!!!!!!!!");
-        /*
-        lock.lock();
+		int[][] newGrid = new int[maxX][maxY];
 
-        int[][] newGrid = new int[w][h];
+		for (int i = 0; i < maxX; i++) {
+			for (int j = 0; j < maxY; j++) {
+				newGrid[i][j] = gridQuad[i][j];
+			}
+		}
 
-        int width = Math.min(gridQuad.length, w);
-        int height = Math.min(gridQuad[0].length, h);
+		gridQuad = newGrid;
 
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                newGrid[i][j] = gridQuad[i][j];
-            }
-        }
+		lock.unlock();
+	}
 
-        gridQuad = newGrid;
+	public int getWidth() {
+		return gridQuad.length * 2 - 1;
+	}
 
-        lock.unlock();
-        */
-    }
+	public int getHeight() {
+		return gridQuad[0].length * 2 - 1;
+	}
 
-    public int[][] getGrid() {
-        return gridQuad;
-    }
+	public void resize(int w, int h) {
+		throw new UnsupportedOperationException("Im not ready to be used yet!!!!!!!!!");
+		/*
+		lock.lock();
 
-    // @TODO this is terrible
-    // NOT THREAD SAFE!!!!!!
-    public void copyFrom(SinglePileSandGrid other) {
-        // very inefficient (with sizes), work on
+		int[][] newGrid = new int[w][h];
 
-        boolean lopped = false;
-        int[][] otherGrid = other.getGrid();
-        for (int i = 0; i < otherGrid.length; i++) {
-            for (int j = 0; j < otherGrid[0].length; j++) {
-                try {
-                    gridQuad[i][j] = otherGrid[i][j];
-                }
-                catch (ArrayIndexOutOfBoundsException aie) {
-                    if (!lopped) {
-                        System.out.println("Grids not equal sizes!");
-                        lopped = true;
-                    }
-                }
-            }
-        }
-    }
+		int width = Math.min(gridQuad.length, w);
+		int height = Math.min(gridQuad[0].length, h);
 
-    public void unfoldOnto(int[][] fullGrid) {
-        int width = gridQuad.length, height = gridQuad[0].length;
-        int fullWidth = width * 2 - 1, fullHeight = height * 2 - 1;
+		for (int i = 0; i < width; i++) {
+			for (int j = 0; j < height; j++) {
+				newGrid[i][j] = gridQuad[i][j];
+			}
+		}
 
-        if (fullGrid.length < fullWidth || fullGrid[0].length < fullHeight) {
-            throw new IllegalArgumentException("grid passed is too small");
-        }
+		gridQuad = newGrid;
 
-        lock.lock();
-        for (int i = 0; i < fullWidth; i++) {
-            for (int j = 0; j < fullHeight; j++) {
-                int x = Math.abs(i - (width - 1));
-                int y = Math.abs(j - (height - 1));
+		lock.unlock();
+		*/
+	}
 
-                fullGrid[i][j] = gridQuad[x][y];
-            }
-        }
-        lock.unlock();
-    }
+	public int[][] getGrid() {
+		return gridQuad;
+	}
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        lock.lock();
-        try {
-            out.writeObject(gridQuad);
-        } finally {
-            lock.unlock();
-        }
-    }
+	// @TODO this is terrible
+	// NOT THREAD SAFE!!!!!!
+	public void copyFrom(SinglePileSandGrid other) {
+		// very inefficient (with sizes), work on
 
-    private void readObject(ObjectInputStream in) throws IOException,
-            ClassNotFoundException {
-        gridQuad = (int[][]) in.readObject();
-        lock = new ReentrantLock(fairLock);
-        calc_width = -1;
-        calc_height = -1;
-    }
+		boolean lopped = false;
+		int[][] otherGrid = other.getGrid();
+		for (int i = 0; i < otherGrid.length; i++) {
+			for (int j = 0; j < otherGrid[0].length; j++) {
+				try {
+					gridQuad[i][j] = otherGrid[i][j];
+				}
+				catch (ArrayIndexOutOfBoundsException aie) {
+					if (!lopped) {
+						System.out.println("Grids not equal sizes!");
+						lopped = true;
+					}
+				}
+			}
+		}
+	}
+
+	public void unfoldOnto(int[][] fullGrid) {
+		int width = gridQuad.length, height = gridQuad[0].length;
+		int fullWidth = width * 2 - 1, fullHeight = height * 2 - 1;
+
+		if (fullGrid.length < fullWidth || fullGrid[0].length < fullHeight) {
+			throw new IllegalArgumentException("grid passed is too small");
+		}
+
+		lock.lock();
+		for (int i = 0; i < fullWidth; i++) {
+			for (int j = 0; j < fullHeight; j++) {
+				int x = Math.abs(i - (width - 1));
+				int y = Math.abs(j - (height - 1));
+
+				fullGrid[i][j] = gridQuad[x][y];
+			}
+		}
+		lock.unlock();
+	}
+
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		lock.lock();
+		try {
+			out.writeObject(gridQuad);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	private void readObject(ObjectInputStream in) throws IOException,
+			ClassNotFoundException {
+		gridQuad = (int[][]) in.readObject();
+		lock = new ReentrantLock(fairLock);
+	}
 }

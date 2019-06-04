@@ -1,1 +1,1 @@
-jar cmfv sandpilemanifest.mf ../SandPile.jar *.class
+jar cmfv spmanifest.mf ../SandPile.jar *.class

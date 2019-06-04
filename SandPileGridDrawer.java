@@ -1,61 +1,62 @@
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 
 public class SandPileGridDrawer {
-    public SandPileGrid spg;
-    public Color[] sandColors = { new Color(18, 72, 249), new Color(115, 170, 249), new Color(255, 192, 0), new Color(124, 0, 0) };
-    public Color bigSandColor = Color.WHITE;
+	public Color[] palette;
+	public Color fallbackColor;
 
-    public SandPileGridDrawer(SandPileGrid spg) {
-        if (spg == null) {
-            throw new IllegalArgumentException ("NULL SandPileGrid!");
-        }
+	public static final Color[] defaultPalette = { new Color(18, 72, 249), new Color(115, 170, 249), new Color(255, 192, 0), new Color(124, 0, 0) };
+	public static final Color defaultFallbackColor = Color.WHITE;
 
-        this.spg = spg;
-    }
+	public SandPileGridDrawer(Color[] palette, Color fallbackColor) {
+		if (palette == null || fallbackColor == null) {
+			throw new IllegalArgumentException("arguments can not be null");
+		}
 
-    public void renderTo(BufferedImage canvas) {
-        if (canvas.getWidth() < spg.getWidth() || canvas.getHeight() < spg.getHeight()) {
-            throw new IllegalArgumentException("canvas passed is too small");
-        }
+		if (palette.length == 0) {
+			throw new IllegalArgumentException("palette length can't be less than 0");
+		}
 
-        for (int i = 0; i < spg.getWidth(); i++) {
-            for (int j = 0; j < spg.getHeight(); j++) {
-                int sand = spg.getSand(i, j);
+		this.palette = palette;
+		this.fallbackColor = fallbackColor;
+	}
 
-                Color pixelColor;
-                if (sand >= SimpleSandPileGrid.TOPPLE_SAND) {
-                    pixelColor = bigSandColor;
-                }
-                else {
-                    pixelColor = sandColors[sand];
-                }
+	public SandPileGridDrawer() {
+		this(defaultPalette, defaultFallbackColor);
+	}
 
-                canvas.setRGB(i, j, pixelColor.getRGB());
-            }
-        }
-    }
+	public void renderTo(BufferedImage image, SandPileGrid grid) {
+		if (image.getWidth() != grid.getWidth() || image.getHeight() != grid.getHeight()) {
+			throw new IllegalArgumentException("image and grid sizes different");
+		}
 
-    public BufferedImage getImage() {
-        int width = spg.getWidth(), height = spg.getHeight();
-        BufferedImage canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		int width = grid.getWidth();
+		int height = grid.getHeight();
 
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                int sand = spg.getSand(i, j);
+		for (int i = 0; i < width; i++) {
+			for (int j = 0; j < height; j++) {
+				int sand = grid.getSand(i, j);
 
-                Color pixelColor;
-                if (sand >= SimpleSandPileGrid.TOPPLE_SAND) {
-                    pixelColor = bigSandColor;
-                }
-                else {
-                    pixelColor = sandColors[sand];
-                }
+				Color pixelColor;
+				if (sand < 0 || sand >= palette.length) {
+					pixelColor = this.fallbackColor;
+				}
+				else {
+					pixelColor = this.palette[sand];
+				}
 
-                canvas.setRGB(i, j, pixelColor.getRGB());
-            }
-        }
+				image.setRGB(i, j, pixelColor.getRGB());
+			}
+		}
+	}
 
-        return canvas;
-    }
+	public BufferedImage getImage(SandPileGrid grid) {
+		int width = grid.getWidth();
+		int height = grid.getHeight();
+		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+		renderTo(image, grid);
+
+		return image;
+	}
 }
