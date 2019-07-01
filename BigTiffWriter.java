@@ -155,29 +155,55 @@ public class BigTiffWriter {
 		buf.order(this.order);
 
 		buf.putLong(numTags);
-		this.putTag(0x0100, TiffDataType.LONG, 1, this.src.getWidth(), buf);  // width
-		this.putTag(0x0101, TiffDataType.LONG, 1, this.src.getHeight(), buf); // height
-		this.putTag(0x0102, TiffDataType.SHORT, 3, 0x0008000800080000L, buf); // bits per sample
-		this.putTag(0x0106, TiffDataType.SHORT, 1, 2L, buf);                  // photometric interpretation
-		this.putTag(0x0111, TiffDataType.SHORT, 1, 16L, buf);                 // strip offset
-		this.putTag(0x0115, TiffDataType.SHORT, 1, 3L, buf);                  // samples per pixel
-		this.putTag(0x0116, TiffDataType.LONG, 1, this.src.getHeight(), buf); // rows per strip
-		this.putTag(0x0117, TiffDataType.LONG, 1, stripBytes, buf);
+		this.putTag(buf, 0x0100, TiffDataType.LONG, this.src.getWidth());  // width
+		this.putTag(buf, 0x0101, TiffDataType.LONG, this.src.getHeight()); // height
+		this.putTag(buf, 0x0102, TiffDataType.SHORT, new long[]{8, 8, 8});           // bits per sample
+		this.putTag(buf, 0x0106, TiffDataType.SHORT, 2L);                  // photometric interp.
+		this.putTag(buf, 0x0111, TiffDataType.SHORT, 16L);                 // strip offset
+		this.putTag(buf, 0x0115, TiffDataType.SHORT, 3L);                  // samples per pixel
+		this.putTag(buf, 0x0116, TiffDataType.LONG, this.src.getHeight()); // rows per strip
+		this.putTag(buf, 0x0117, TiffDataType.LONG, stripBytes);           // bytes in strip
 		buf.putLong(0);
 
 		out.write(buf.array(), 0, buf.position());
 	}
 
-	// Does not support indirect data
-	private void putTag(int code, TiffDataType type, long numVals, long data, ByteBuffer buffer) {
+	// doesnt support floating point or string values
+	private void putTag(ByteBuffer buffer, int code, TiffDataType dataType, long[] vals) {
+		final int payloadLength = dataType.size() * vals.length;
+		if (payloadLength > 8) {
+			throw new IllegalArgumentException("putTag() does not support indirect data yet.");
+		}
+		else if (dataType != TiffDataType.SHORT && dataType != TiffDataType.LONG) {
+			throw new IllegalArgumentException("putTag() only supports types SHORT & LONG.");
+		}
+
 		buffer.putShort((short) code);
-		buffer.putShort((short) type.typeCode());
-		buffer.putLong(numVals);
-		buffer.putLong(data);
+		buffer.putShort((short) dataType.typeCode());
+		buffer.putLong(vals.length);
+
+		for (long val: vals) {
+			switch (dataType) {
+				case SHORT:
+					buffer.putShort((short) val);
+					break;
+				case LONG:
+					buffer.putInt((int) val);
+					break;
+				default:
+					System.err.println("what");
+			}
+		}
+
+		final int padding = 8 - payloadLength;
+
+		for (int i = 0; i < padding; i++) {
+			buffer.put((byte) 0);
+		}
 	}
 
-	private void putTag(ByteBuffer buffer, int code, TiffDataType, long[] vals) {
-
+	private void putTag(ByteBuffer buffer, int code, TiffDataType dataType, long val) {
+		this.putTag(buffer, code, dataType, new long[]{val});
 	}
 
 	private void putColor(Color color, ByteBuffer buffer) {
