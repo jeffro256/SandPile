@@ -7,7 +7,6 @@ public interface SandPileGrid {
     public int getSand(int x, int y);
     public void setSand(int sand, int x, int y);
     public long amountSand();
-    public void fill(int sand);
 
     public int getWidth();
     public int getHeight();

@@ -1,4 +1,4 @@
-public class SandPileHelper {
+public class SandPiles {
 	public static SandPileGrid copy(SandPileGrid grid) {
 		int width = grid.getWidth();
 		int height = grid.getHeight();
@@ -32,6 +32,20 @@ public class SandPileHelper {
 		}
 	}
 
+	public static long amountSand(SandPileGrid grid) {
+		long sum = 0;
+
+		for (int i = 0; i < grid.getWidth(); i++) {
+			for (int j = 0; j < grid.getHeight(); j++) {
+				int sand = grid.getSand(i, j);
+				
+				sum += sand;
+			}
+		}
+
+		return sum;
+	}
+
 	public static long amountCriticalSand(SandPileGrid grid) {
 		long sum = 0;
 
@@ -40,7 +54,7 @@ public class SandPileHelper {
 				int sand = grid.getSand(i, j);
 
 				if (sand > 3) {
-					sum += critSand - 3;
+					sum += sand - 3;
 				}
 			}
 		}
@@ -53,12 +67,22 @@ public class SandPileHelper {
 			for (int j = 0; j < grid.getHeight(); j++) {
 				int sand = grid.getSand(i, j);
 
-				callable.call(grid, i, j, sand);
+				callable.call(i, j, sand);
 			}
 		}
 	}
 
 	public interface CellCallable {
-		public void call(SandPileGrid grid, int x, int y, int sand);
+		public void call(int x, int y, int sand);
+	}
+
+	public static SandPileGrid loadSandPile(String path) {
+		FileInputStream fstream = new FileInputStream(objInFile);
+		ObjectInputStream objStream = new ObjectInputStream(fstream);			
+		SandPilegrid grid = (SandPileGrid) objStream.readObject();
+		objStream.close();
+		fstream.close();
+
+		return grid;
 	}
 }

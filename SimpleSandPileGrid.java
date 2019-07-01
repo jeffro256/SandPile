@@ -83,11 +83,8 @@ public class SimpleSandPileGrid implements SandPileGrid {
 			topple();
 		}
 	}
-	
-	public void place(int x, int y, int s) {
-		place(x, y, s, false);
-	}
 
+	@Override
 	public long step(long maxSteps) {
 		int[][] newGrid = new int[width][height];
 
@@ -137,14 +134,18 @@ public class SimpleSandPileGrid implements SandPileGrid {
 		return steps;
 	}
 
+
+	@Override
 	public void step() {
 		step(1);
 	}
 	
+	@Override
 	public long topple() {
 		return step(-1);
 	}
 	
+	@Override
 	public boolean isStable() {
 		for (int[] i: grid) {
 			for (int j: i) {
@@ -156,31 +157,8 @@ public class SimpleSandPileGrid implements SandPileGrid {
 		
 		return true;
 	}
-
-	public long amountSand() {
-		long sand = 0;
-
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
-				sand += grid[i][j];
-			}
-		}
-
-		return sand;
-	}
-
-	public void fill(int sand) {
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
-				grid[i][j] = sand;
-			}
-		}
-	}
 	
-	public void clear() {
-		fill(0);
-	}
-	
+	@Override
 	public int getSand(int x, int y) {
 		if (x < 0 || x >= width) {
 			throw new IllegalArgumentException("x out of bounds!");
@@ -193,7 +171,8 @@ public class SimpleSandPileGrid implements SandPileGrid {
 		return grid[x][y];
 	}
 	
-	public void setSand(int x, int y, int s, boolean shouldTopple) {
+	@Override
+	public void setSand(int x, int y, int s) {
 		if (s < 0) {
 			throw new IllegalArgumentException("sand < 0!");
 		}
@@ -207,42 +186,16 @@ public class SimpleSandPileGrid implements SandPileGrid {
 		}
 		
 		grid[x][y] = s;
-		
-		if (shouldTopple) {
-			topple();
-		}
-	}
-	
-	public void setSand(int x, int y, int s) {
-		setSand(x, y, s, true);
 	}	  
 	
+	@Override
 	public int getWidth() {
 		return width;
 	}
 	
-	public void setWidth(int w) {
-		if (w <= 0) {
-			throw new IllegalArgumentException("width <= 0!");
-		}
-		
-		width = w;
-		
-		grid = new int[width][height];
-	}
-	
+	@Override
 	public int getHeight() {
 		return height;
-	}
-	
-	public void setHeight(int h) {
-		if (h <= 0) {
-			throw new IllegalArgumentException("height <= 0!");
-		}
-		
-		height = h;
-		
-		grid = new int[width][height];
 	}
 
 	@Override
@@ -259,18 +212,6 @@ public class SimpleSandPileGrid implements SandPileGrid {
 		height = h;
 
 		grid = new int[width][height];
-	}
-	
-	public int[][] toArray() {
-		int[][] returnGrid = new int[width][height];
-		
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
-				returnGrid[i][j] = grid[i][j];
-			}
-		}
-		
-		return returnGrid;
 	}
 	
 	@Override
@@ -341,26 +282,6 @@ public class SimpleSandPileGrid implements SandPileGrid {
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
 				if (other.getSand(i, j) != this.getSand(i, j)) {
-					return false;
-				}
-			}
-		}
-		
-		return true;
-	}
-	
-	private static boolean isValidGrid(int[][] grid, int width, int height) {
-		if (grid.length != width) {
-			return false;
-		}
-	
-		for (int i = 0; i < width; i++) {
-			if (grid[i].length != height) {
-				return false;
-			}
-			
-			for (int j = 0; j < height; j++) {
-				if (grid[i][j] < 0) {
 					return false;
 				}
 			}

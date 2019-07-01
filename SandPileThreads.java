@@ -1,4 +1,4 @@
-public class SandPileThreadHelper {
+public class SandPileThreads {
 	public static Thread createAutosaveThread(Object obj, int saveDelay, String... paths) {
 		Thread saveThread = new Thread(new Runnable() {
 			@Override

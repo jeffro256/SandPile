@@ -1,9 +1,10 @@
 import java.awt.Point;
 import java.io.*;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 // Symmetric Byte-Array Sand Pile Grid 
-public class SBSandPileGrid implements SandPileGrid, Serializable {
+public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 	private int width;
 	private int height;
 	private int quadWidth;
@@ -204,26 +205,6 @@ public class SBSandPileGrid implements SandPileGrid, Serializable {
 	}
 
 	@Override
-	public void fill(int sand) {
-		if (sand >= 256) {
-			throw new IllegalArgumentException("sand must be less than 256.");
-		}
-		else if (sand < 0) {
-			throw new IllegalArgumentException("sand must be at least 0.");
-		}
-
-		lock.lock();
-
-		for (int i = 0; i < this.quadWidth; i++) {
-			for (int j = 0; j < this.quadHeight; j++) {
-				this.gridQuad[i][j] = (byte) sand;
-			}
-		}
-
-		lock.unlock();
-	}
-
-	@Override
 	public int getWidth() {
 		return this.width;
 	}
@@ -299,14 +280,13 @@ public class SBSandPileGrid implements SandPileGrid, Serializable {
 		return true;
 	}
 
-	// Extra stuff :)
-
-	public ReentrantLock getLock() {
+	@Override
+	public Lock getLock() {
 		return this.lock;
 	}
 
 	// Implementation details
-
+	
 	private Point doneStepPoint = new Point(-1, -1);
 
 	// The point passed and returned signfies the maximum (x, y) to check
