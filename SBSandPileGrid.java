@@ -104,6 +104,10 @@ public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 		this.lock = new ReentrantLock(true);
 	}
 
+	public void place(byte sand) {
+		this.gridQuad[0][0] += sand;
+	}
+
 	@Override
 	public long topple() {
 		return this.step(-1);
@@ -127,7 +131,7 @@ public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 
 			topplePt = this.centralStep(topplePt);
 
-			stable = topplePt == this.doneStepPoint;
+			stable = topplePt.equals(this.doneStepPoint);
 
 			steps++;
 		}
@@ -146,8 +150,8 @@ public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 	public boolean isStable() {
 		lock.lock();
 
-		for (int i = 0; i < this.width; i++) {
-			for (int j = 0; j < this.height; j++) {
+		for (int i = 0; i < this.quadWidth; i++) {
+			for (int j = 0; j < this.quadHeight; j++) {
 				if (this.gridQuad[i][j] >= 4) {
 					return false;
 				}
@@ -168,7 +172,7 @@ public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 	}
 
 	@Override
-	public void setSand(int sand, int x, int y) {
+	public void setSand(int x, int y, int sand) {
 		if (sand >= 128) {
 			throw new IllegalArgumentException("sand must be less than 128.");
 		}
@@ -261,12 +265,14 @@ public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 			if (this.width != other.getWidth()) return false;
 			if (this.height != other.getHeight()) return false;
 
-			for (int i = 0; i < this.width; i++) {
-				for (int j = 0; i < this.height; j++) {
+			for (int j = 0; j < this.height; j++) {
+				for (int i = 0; i < this.width; i++) {
 					int thisSand = this.getSand(i, j);
 					int otherSand = other.getSand(i, j);
 
-					if (thisSand != otherSand) return false;
+					if (thisSand != otherSand) {
+						return false;
+					}
 				}
 			}
 		}
@@ -296,33 +302,33 @@ public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 
 		for (int i = 0; i <= maxPt.x; i++) {
 			for (int j = 0; j <= maxPt.y; j++) {
-				int sand = this.gridQuad[i][j];
+				final int toppleSand = this.gridQuad[i][j] >>> 2;
 
-				if (sand >= 4) {
+				if (toppleSand != 0) {
 					this.gridQuad[i][j] &= 3;
 
 					if (i > 1) {
-						this.gridQuad[i-1][j] += sand >>> 2;
+						this.gridQuad[i-1][j] += toppleSand;
 					}
 					else if (i == 1) {
-						this.gridQuad[0][j] += sand >>> 2 << 1;
+						this.gridQuad[0][j] += toppleSand << 1;
 					}
 
 					if (i < this.quadWidth - 1) {
-						this.gridQuad[i+1][j] += sand >>> 2;
+						this.gridQuad[i+1][j] += toppleSand;
 
 						maxX = Math.max(i + 1, maxX);
 					}
 
 					if (j > 1) {
-						this.gridQuad[i][j-1] += sand >>> 2;
+						this.gridQuad[i][j-1] += toppleSand;
 					}
 					else if (j == 1) {
-						this.gridQuad[i][0] += sand >>> 2 << 1;
+						this.gridQuad[i][0] += toppleSand << 1;
 					}
 
 					if (j < this.quadHeight - 1) {
-						this.gridQuad[i][j+1] += sand >>> 2;
+						this.gridQuad[i][j+1] += toppleSand;
 
 						maxY = Math.max(j + 1, maxY);
 					}

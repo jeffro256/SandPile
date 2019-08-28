@@ -1,4 +1,4 @@
-import java.awat.Color;
+import java.awt.Color;
 
 public class SandPilePixelIterator implements BigTiffWriter.PixelIterator {
 	public static final Color[] defaultPalette = {

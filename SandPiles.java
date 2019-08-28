@@ -1,3 +1,9 @@
+import java.awt.Color;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+
 public class SandPiles {
 	public static SandPileGrid copy(SandPileGrid grid) {
 		int width = grid.getWidth();
@@ -76,13 +82,21 @@ public class SandPiles {
 		public void call(int x, int y, int sand);
 	}
 
-	public static SandPileGrid loadSandPile(String path) {
-		FileInputStream fstream = new FileInputStream(objInFile);
-		ObjectInputStream objStream = new ObjectInputStream(fstream);			
-		SandPilegrid grid = (SandPileGrid) objStream.readObject();
-		objStream.close();
-		fstream.close();
+	public static SandPileGrid loadSandPile(String path)
+	throws IOException, FileNotFoundException {
+		FileInputStream fstream = new FileInputStream(path);
+		ObjectInputStream objStream = new ObjectInputStream(fstream);
+		try {
+			SandPileGrid grid = (SandPileGrid) objStream.readObject();
 
-		return grid;
+			return grid;
+		}
+		catch (ClassNotFoundException cnfe) {
+			return null;
+		}
+		finally {
+			objStream.close();
+			fstream.close();
+		}
 	}
 }

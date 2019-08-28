@@ -13,10 +13,6 @@ public class SimpleSandPileGrid implements SandPileGrid {
 		if (height <= 0) {
 			throw new IllegalArgumentException("height <= 0!");
 		}
-		
-		if (!isValidGrid(grid, width, height)) {
-			throw new IllegalArgumentException("grid not valid!");
-		}
 	
 		this.width = width;
 		this.height = height;
@@ -186,6 +182,19 @@ public class SimpleSandPileGrid implements SandPileGrid {
 		}
 		
 		grid[x][y] = s;
+	}
+
+	@Override
+	public long amountSand() {
+		long sum = 0;
+
+		for (int i = 0; i < width; i++) {
+			for (int j = 0; j < height; j++) {
+				sum += grid[i][j];
+			}
+		}
+
+		return sum;
 	}	  
 	
 	@Override
@@ -259,11 +268,6 @@ public class SimpleSandPileGrid implements SandPileGrid {
 		}
 		
 		return hashCode;
-	}		 
-	
-	@Override
-	public Object clone() {
-		return new SimpleSandPileGrid(width, height, toArray());
 	}
 	
 	// Note that two sand pile grids could be equivalent when toppled, but equals return false
@@ -273,7 +277,7 @@ public class SimpleSandPileGrid implements SandPileGrid {
 			return false;
 		}
 		
-		SimpleSandPileGrid other = (SimpleSandPileGrid) obj;
+		SandPileGrid other = (SandPileGrid) obj;
 		
 		if (other.getWidth() != this.getWidth() || other.getHeight() != this.getHeight()) {
 			return false;
