@@ -8,7 +8,7 @@ import java.nio.ByteOrder;
 import java.util.Iterator;
 
 /*
-	This class is rather computational inefficient as it is optimized to use
+	This class is rather computationally inefficient as it is optimized to use
 	a very small amount of memory.
 */
 
