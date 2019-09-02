@@ -86,10 +86,16 @@ public class SandPiles {
 	throws IOException, FileNotFoundException {
 		FileInputStream fstream = new FileInputStream(path);
 		ObjectInputStream objStream = new ObjectInputStream(fstream);
-		try {
-			SandPileGrid grid = (SandPileGrid) objStream.readObject();
 
-			return grid;
+		try {
+			Object deserializedObject = objStream.readObject();
+			
+			if (deserializedObject instanceof SandPileGrid) {
+				return (SandPileGrid) deserializedObject;
+			}
+			else {
+				throw new ClassCastException("class in file is not instance of SandPileGrid");
+			}
 		}
 		catch (ClassNotFoundException cnfe) {
 			return null;

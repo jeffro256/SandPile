@@ -7,7 +7,7 @@ public class SinglePileSandGrid implements Serializable {
 	private volatile transient boolean toppling;
 	//private transient int calc_width, calc_height;
 
-	private static final long serialVersionUID = 0xEF85C8A053713EC9L;
+	private static final long serialVersionUID = 8309200284561310866L;
 	private static final boolean fairLock = true;
 
 	public SinglePileSandGrid(int size) {

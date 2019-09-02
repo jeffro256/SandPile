@@ -66,10 +66,6 @@ public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 		// all sand is 63. Maybe conservative estimate, maybe not ;)
 		final int sandLimit = 63; 
 
-		if (quadHeight % 2 == 0 || quadHeight % 2 == 0) {
-			throw new IllegalArgumentException("one or more dimensions of grid quadrant are even");
-		}
-
 		byte[][] byteQuad = new byte[quadWidth][quadHeight];
 
 		for (int i = 0; i < quadWidth; i++) {
@@ -77,7 +73,7 @@ public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 				throw new IllegalArgumentException("grid quadrant is jagged");
 			}
 
-			for (int j = 0; i < quadHeight; j++) {
+			for (int j = 0; j < quadHeight; j++) {
 				int sand = gridQuad[i][j];
 
 				if (sand > sandLimit) {
@@ -86,7 +82,7 @@ public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 					throw new IllegalArgumentException(msg);
 				}
 
-				if (sand > 0) {
+				if (sand < 0) {
 					String msg = "sand less than 0 at (" + i + ", " + j + ")";
 
 					throw new IllegalArgumentException(msg);
@@ -234,7 +230,7 @@ public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 		byte[][] newGrid = new byte[newQuadWidth][newQuadHeight];
 
 		int smallQuadWidth = Math.min(this.quadWidth, newQuadWidth);
-		int smallQuadHeight = Math.min(this.quadHeight, height);
+		int smallQuadHeight = Math.min(this.quadHeight, newQuadHeight);
 
 		for (int i = 0; i < smallQuadWidth; i++) {
 			for (int j = 0; j < smallQuadHeight; j++) {
@@ -249,6 +245,14 @@ public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 		this.gridQuad = newGrid;
 
 		lock.unlock();
+	}
+
+	public void multiply(int scalar) {
+		for (int i = 0; i < this.quadWidth; i++) {
+			for (int j = 0; j < this.quadHeight; j++) {
+				gridQuad[i][j] *= scalar;
+			}
+		}
 	}
 
 	// Note that two sand pile grids could be equivalent when toppled, 
