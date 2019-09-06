@@ -1,60 +1,96 @@
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class SandPileThreads {
-	public static Thread createAutosaveThread(Object obj, int saveDelay, String... paths) {
-		Thread saveThread = new Thread(new Runnable() {
+	private static Timer timer = new Timer("SandPileThreads Timer", true);
+
+	public static TimerTask scheduleAutosave(LockableSandPileGrid grid, long saveDelay, String... paths) {
+		TimerTask task = new TimerTask() {
 			@Override
 			public void run() {
-				while (!Thread.interrupted()) {
-					try {
-						for (String path: paths) {
-							FileOutputStream fstream = new FileOutputStream(path);
-							ObjectOutputStream ostream = new ObjectOutputStream(fstream);
-							ostream.writeObject(obj);
-							ostream.close();
-							fstream.close();
-						}
+				grid.getLock().lock();
 
-						Thread.sleep(saveDelay);
-					}
-					catch (InterruptedException ie) { 
-						break;
+				for (String path: paths) {
+					try {
+						SandPiles.saveSandPile(grid, path);
+
+						System.out.println("Autosaved sand pile to " + path);
 					}
 					catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
+
+				grid.getLock().unlock();
 			}
-		});
-		saveThread.setDaemon(true);
+		};
 
-		return saveThread;
+		timer.schedule(task, saveDelay, saveDelay);
+
+		return task;
 	}
 
-	public static Thread createAutosaveThread(Object obj, String... paths) {
-		return createAutosaveThread(obj, 180000000, paths);
+	public static TimerTask scheduleAutosave(LockableSandPileGrid grid, String... paths) {
+		long saveDelay = 18000000; // 5 hours
+		return scheduleAutosave(grid, saveDelay, paths);
 	}
 
-	public static Thread createShutdownHook(Object obj, String... paths) {
+	public static TimerTask scheduleProgressReport(LockableSandPileGrid grid, long delay) {
+		TimerTask task = new TimerTask() {
+			@Override
+			public void run() {
+				grid.getLock().lock();
+
+				System.out.println("progress...");
+				long criticalSand = SandPiles.amountCriticalSand(grid);
+				System.out.println("Critical Sand: " + criticalSand);
+				
+				grid.getLock().unlock();
+
+				System.out.println("done with progress. lock hold count: " + ((ReentrantLock) grid.getLock()).getHoldCount());
+			}
+		};
+
+		timer.schedule(task, delay, delay);
+
+		return task;
+	}
+
+	public static TimerTask scheduleProgressReport(LockableSandPileGrid grid) {
+		long delay = 3600000; // 1 hour
+		return scheduleProgressReport(grid, delay);
+	}
+
+	public static Thread createShutdownHook(LockableSandPileGrid grid, String... paths) {
 		Thread hook = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				try {
-					for (String path: paths) {
-						System.out.println("Serializing to " + path);
-						FileOutputStream fstream = new FileOutputStream(path);
-						ObjectOutputStream ostream = new ObjectOutputStream(fstream);
-						ostream.writeObject(obj);
-						ostream.close();
-						fstream.close();
+				grid.getLock().lock();
+
+				System.out.println("Performing shutdown tasks.");
+
+				for (String path: paths) {
+					System.out.println("Serializing to " + path);
+
+					try {
+						SandPiles.saveSandPile(grid, path);
 					}
-					System.out.println("Exiting...");
+					catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+
+				grid.getLock().unlock();
+				System.out.println("Exiting...");
 			}
 		});
 		hook.setDaemon(false);
 
 		return hook;
+	}
+
+	public static void registerAutosaveSH(LockableSandPileGrid grid, String... paths) {
+		Runtime.getRuntime().addShutdownHook(createShutdownHook(grid, paths));
 	}
 }

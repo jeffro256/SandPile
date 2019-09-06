@@ -112,7 +112,7 @@ public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 	@Override
 	public long step(long maxSteps) {
 		final boolean indefinite = maxSteps < 0;
-		final int lockInterval = 100; 
+		final int lockInterval = 20; 
 		boolean stable = this.isStable();
 		Point topplePt = new Point(this.quadWidth - 1, this.quadHeight - 1);
 
@@ -149,6 +149,8 @@ public class SBSandPileGrid implements LockableSandPileGrid, Serializable {
 		for (int i = 0; i < this.quadWidth; i++) {
 			for (int j = 0; j < this.quadHeight; j++) {
 				if (this.gridQuad[i][j] >= 4) {
+					lock.unlock();
+
 					return false;
 				}
 			}

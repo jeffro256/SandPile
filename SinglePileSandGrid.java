@@ -192,26 +192,15 @@ public class SinglePileSandGrid implements Serializable {
 		return gridQuad[0].length * 2 - 1;
 	}
 
+	public int getSand(int x, int y) {
+		int quadX = Math.abs(this.getWidth() / 2 - x);
+		int quadY = Math.abs(this.getHeight() / 2 - y);
+
+		return this.gridQuad[quadX][quadY];
+	}
+
 	public void resize(int w, int h) {
 		throw new UnsupportedOperationException("Im not ready to be used yet!!!!!!!!!");
-		/*
-		lock.lock();
-
-		int[][] newGrid = new int[w][h];
-
-		int width = Math.min(gridQuad.length, w);
-		int height = Math.min(gridQuad[0].length, h);
-
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
-				newGrid[i][j] = gridQuad[i][j];
-			}
-		}
-
-		gridQuad = newGrid;
-
-		lock.unlock();
-		*/
 	}
 
 	public int[][] getGrid() {
@@ -232,7 +221,7 @@ public class SinglePileSandGrid implements Serializable {
 				}
 				catch (ArrayIndexOutOfBoundsException aie) {
 					if (!lopped) {
-						System.out.println("Grids not equal sizes!");
+						System.out.println("Grids not equal sizes!"); 
 						lopped = true;
 					}
 				}

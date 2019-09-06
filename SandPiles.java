@@ -1,8 +1,10 @@
 import java.awt.Color;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 public class SandPiles {
 	public static SandPileGrid copy(SandPileGrid grid) {
@@ -68,6 +70,22 @@ public class SandPiles {
 		return sum;
 	}
 
+	public static int maxSand(SandPileGrid grid) {
+		int maxSand = grid.getSand(0, 0);
+
+		for (int i = 0; i < grid.getWidth(); i++) {
+			for (int j = 0; j < grid.getHeight(); j++) {
+				int sand = grid.getSand(i, j);
+
+				if (sand > maxSand) {
+					maxSand = sand;
+				}
+			}
+		}
+
+		return maxSand;
+	}
+
 	public static void forEachCell(SandPileGrid grid, CellCallable callable) {
 		for (int i = 0; i < grid.getWidth(); i++) {
 			for (int j = 0; j < grid.getHeight(); j++) {
@@ -82,6 +100,16 @@ public class SandPiles {
 		public void call(int x, int y, int sand);
 	}
 
+	public static void saveSandPile(SandPileGrid grid, String path) 
+	throws IOException, FileNotFoundException {
+		FileOutputStream fstream = new FileOutputStream(path);
+		ObjectOutputStream ostream = new ObjectOutputStream(fstream);
+
+		ostream.writeObject(grid);
+		ostream.close();
+		fstream.close();
+	}
+
 	public static SandPileGrid loadSandPile(String path)
 	throws IOException, FileNotFoundException {
 		FileInputStream fstream = new FileInputStream(path);
@@ -89,7 +117,7 @@ public class SandPiles {
 
 		try {
 			Object deserializedObject = objStream.readObject();
-			
+
 			if (deserializedObject instanceof SandPileGrid) {
 				return (SandPileGrid) deserializedObject;
 			}
