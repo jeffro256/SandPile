@@ -1,3 +1,5 @@
+package com.jeffaryan.sandpile;
+
 public interface SandPileGrid {
     public long topple();
     public long step(long maxSteps);

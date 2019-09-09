@@ -1,3 +1,5 @@
+package com.jeffaryan.sandpile;
+
 import java.awt.Color;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -124,9 +126,6 @@ public class SandPiles {
 			else {
 				throw new ClassCastException("class in file is not instance of SandPileGrid");
 			}
-		}
-		catch (ClassNotFoundException cnfe) {
-			return null;
 		}
 		finally {
 			objStream.close();

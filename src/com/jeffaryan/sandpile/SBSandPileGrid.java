@@ -1,3 +1,5 @@
+package com.jeffaryan.sandpile;
+
 import java.awt.Point;
 import java.io.*;
 import java.util.concurrent.locks.Lock;

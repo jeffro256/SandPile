@@ -1,3 +1,5 @@
+package com.jeffaryan.sandpile;
+
 import java.awt.Color;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

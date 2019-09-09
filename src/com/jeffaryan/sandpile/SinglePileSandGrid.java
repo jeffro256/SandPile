@@ -1,3 +1,5 @@
+package com.jeffaryan.sandpile;
+
 import java.io.*;
 import java.util.concurrent.locks.*;
 

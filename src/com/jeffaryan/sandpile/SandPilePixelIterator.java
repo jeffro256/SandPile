@@ -1,3 +1,5 @@
+package com.jeffaryan.sandpile;
+
 import java.awt.Color;
 
 public class SandPilePixelIterator implements BigTiffWriter.PixelIterator {

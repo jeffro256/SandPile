@@ -1,3 +1,5 @@
+package com.jeffaryan.sandpile;
+
 import java.util.concurrent.locks.Lock;
 
 public interface LockableSandPileGrid extends SandPileGrid {

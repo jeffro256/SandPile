@@ -1,3 +1,5 @@
+package com.jeffaryan.sandpile;
+
 public class SimpleSandPileGrid implements SandPileGrid {
 	protected int width;
 	protected int height;

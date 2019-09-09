@@ -1,3 +1,5 @@
+package com.jeffaryan.sandpile;
+
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.Timer;
 import java.util.TimerTask;
