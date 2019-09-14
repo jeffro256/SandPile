@@ -6,7 +6,7 @@ public class Main {
 			String pilePath = "Serial\\sbpile_1073741824_wip.ser";
 			SBSandPileGrid grid = (SBSandPileGrid) SandPiles.loadSandPile(pilePath);
 
-			SandPileThreads.scheduleProgressReport(grid, 100000);
+			SandPileThreads.scheduleProgressReport(grid, 900000);
 			SandPileThreads.scheduleAutosave(grid, 3600000, pilePath);
 			SandPileThreads.registerAutosaveSH(grid, pilePath);
 

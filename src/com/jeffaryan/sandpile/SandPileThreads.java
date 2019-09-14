@@ -44,13 +44,12 @@ public class SandPileThreads {
 			public void run() {
 				grid.getLock().lock();
 
-				System.out.println("progress...");
 				long criticalSand = SandPiles.amountCriticalSand(grid);
 				System.out.println("Critical Sand: " + criticalSand);
 				
 				grid.getLock().unlock();
 
-				System.out.println("done with progress. lock hold count: " + ((ReentrantLock) grid.getLock()).getHoldCount());
+				//System.out.println("done with progress. lock hold count: " + ((ReentrantLock) grid.getLock()).getHoldCount());
 			}
 		};
 

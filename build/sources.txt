@@ -1,4 +1,5 @@
 C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\BigTiffWriter.java
+C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\ConversionSBPackaged.java
 C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\LockableSandPileGrid.java
 C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\Main.java
 C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\SandPileGrid.java

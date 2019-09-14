@@ -113,7 +113,7 @@ public class SandPiles {
 	}
 
 	public static SandPileGrid loadSandPile(String path)
-	throws IOException, FileNotFoundException {
+	throws IOException, FileNotFoundException, ClassNotFoundException {
 		FileInputStream fstream = new FileInputStream(path);
 		ObjectInputStream objStream = new ObjectInputStream(fstream);
 

@@ -3,8 +3,8 @@
 *.ser
 *.class
 */.DS_Store
-Movie*
 *.mp4
 *.mov
 old
 jar
+build/sources.txt
