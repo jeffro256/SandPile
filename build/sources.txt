@@ -1,8 +1,11 @@
 C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\BigTiffWriter.java
 C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\ConversionSBPackaged.java
+C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\EventSandPileGrid.java
 C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\LockableSandPileGrid.java
 C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\Main.java
 C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\SandPileGrid.java
+C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\SandPileHeatMap.java
+C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\SandPileListener.java
 C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\SandPilePixelIterator.java
 C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\SandPiles.java
 C:\Users\jeffa\Documents\GitHub\SandPile\src\com\jeffaryan\sandpile\SandPileThreads.java
